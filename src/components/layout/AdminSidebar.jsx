@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-// ✅ ใช้ไอคอนมาตรฐาน List แทน Utensils เพื่อป้องกัน Error
-import { LayoutDashboard, Store, List, ClipboardList, LogOut } from 'lucide-react'; 
+// ✅ เพิ่มไอคอน Globe (รูปโลก) สำหรับปุ่มไปหน้าบ้าน
+import { LayoutDashboard, Store, Utensils, ClipboardList, LogOut, Globe } from 'lucide-react'; 
 import useAuthStore from '../../store/authStore';
 
 const AdminSidebar = () => {
@@ -19,7 +19,7 @@ const AdminSidebar = () => {
   return (
     <div className="w-64 bg-gray-900 text-white min-h-screen flex flex-col p-4 shadow-xl z-50">
       
-      {/* Header */}
+      {/* --- Header --- */}
       <div className="mb-10 px-2 flex items-center gap-3 mt-4">
         <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center font-bold text-xl shadow-lg">
             A
@@ -30,10 +30,10 @@ const AdminSidebar = () => {
         </div>
       </div>
 
-      {/* Menu Links */}
+      {/* --- Menu Links --- */}
       <nav className="flex-1 space-y-2">
         
-        {/* Dashboard */}
+        {/* 1. ภาพรวม */}
         <Link 
           to="/admin/dashboard" 
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium
@@ -45,7 +45,7 @@ const AdminSidebar = () => {
           <LayoutDashboard size={20} /> ภาพรวม
         </Link>
 
-        {/* Manage Shops */}
+        {/* 2. จัดการร้านค้า */}
         <Link 
           to="/admin/shops" 
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium
@@ -57,7 +57,7 @@ const AdminSidebar = () => {
           <Store size={20} /> จัดการร้านค้า
         </Link>
 
-        {/* Menus */}
+        {/* 3. รายการอาหาร */}
         <Link 
           to="/admin/shops" 
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium
@@ -66,10 +66,10 @@ const AdminSidebar = () => {
                 : 'text-gray-400 hover:bg-gray-800 hover:text-white'}
           `}
         >
-          <List size={20} /> รายการอาหาร
+          <Utensils size={20} /> รายการอาหาร
         </Link>
 
-        {/* Orders */}
+        {/* 4. ออเดอร์ */}
         <Link 
           to="/admin/orders" 
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium
@@ -80,10 +80,22 @@ const AdminSidebar = () => {
         >
           <ClipboardList size={20} /> ออเดอร์
         </Link>
+
+        {/* ✅ 5. ปุ่มไปหน้าบ้าน (เพิ่มใหม่!) */}
+        <div className="pt-4 mt-4 border-t border-gray-800">
+            <Link 
+            to="/" 
+            target="_blank" // เปิดแท็บใหม่จะได้ไม่เสียหน้า Admin
+            className="flex items-center gap-3 px-4 py-3 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 rounded-xl transition-all duration-200 font-medium"
+            >
+            <Globe size={20} /> ไปหน้าบ้าน (ลูกค้า)
+            </Link>
+        </div>
+
       </nav>
 
-      {/* Logout */}
-      <div className="mt-auto pt-6 border-t border-gray-800">
+      {/* --- Footer / Logout --- */}
+      <div className="mt-auto pt-2">
         <button 
           onClick={handleLogout}
           className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl w-full transition font-medium"
