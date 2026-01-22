@@ -21,12 +21,15 @@ export const api = {
   createOrder: (orderData) => apiClient.post('/orders', orderData),
   getOrders: () => apiClient.get('/orders'),
   
-  // ✅ แก้ตรงนี้ครับ (จาก /auth/login เป็น /login เฉยๆ)
-  // เพราะ baseURL เรามี /api อยู่แล้ว พอมารวมกันจะเป็น /api/login ตรงกับ Backend พอดีครับ
   login: (creds) => apiClient.post('/login', creds), 
   
   createShop: (data) => apiClient.post('/restaurants', data),
+  
+  // ✅ ต้องมีบรรทัดนี้ครับ ถึงจะกดแก้ไขได้
+  updateShop: (id, data) => apiClient.put(`/restaurants/${id}`, data),
+  
   deleteShop: (id) => apiClient.delete(`/restaurants/${id}`),
+  updateShopStatus: (id, data) => apiClient.put(`/restaurants/${id}/status`, data),
 };
 
 export default apiClient;

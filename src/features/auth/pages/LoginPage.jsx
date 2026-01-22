@@ -47,7 +47,7 @@ const LoginPage = () => {
                value={form.username}
                onChange={handleChange}
                className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition"
-               placeholder="เช่น por0011"
+               placeholder="ใส่ Username"
                required
              />
            </div>

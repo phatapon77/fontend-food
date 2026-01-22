@@ -1,58 +1,202 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import useCartStore from '../../../store/cartStore';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../../services/api';
+import { ArrowLeft, Star, Plus } from 'lucide-react';
+import useCartStore from '../../../store/cartStore';
 
 const ShopDetails = () => {
   const { id } = useParams();
-  const { addToCart } = useCartStore();
+  const navigate = useNavigate();
+  const [shop, setShop] = useState(null);
   const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  const addToCart = useCartStore((state) => state.addToCart);
+
+  // ✅ ระบบแปลชื่อเมนู (เพิ่มรายการตรงนี้ได้เลย)
+  const menuTranslations = {
+    'Khao Soi Kai Special': 'ข้าวซอยไก่พิเศษ',
+    'Sai Ua (Nothern Sausage)': 'ไส้อั่วสมุนไพร',
+    'Nam Prik Ong Set': 'ชุดน้ำพริกอ่อง',
+    'Khao Soi Kai': 'ข้าวซอยไก่',
+    'Sai Oua': 'ไส้อั่ว',
+    'Nam Prik Ong': 'น้ำพริกอ่อง',
+    'Green Curry': 'แกงเขียวหวาน',
+    'Pad Thai': 'ผัดไทย',
+    'Tom Yum Kung': 'ต้มยำกุ้ง'
+  };
+
+  // ✅ ฟังก์ชันจัดรูปแบบชื่อ (ไทย + อังกฤษ)
+  const getBilingualName = (englishName) => {
+    const thaiName = menuTranslations[englishName];
+    if (thaiName) {
+      return (
+        <div>
+          <span className="block text-lg font-bold text-gray-800">{thaiName}</span>
+          <span className="block text-sm font-medium text-gray-400">{englishName}</span>
+        </div>
+      );
+    }
+    // ถ้าไม่มีคำแปล ให้โชว์ชื่อเดิม
+    return <span className="text-lg font-bold text-gray-800">{englishName}</span>;
+  };
 
   useEffect(() => {
-    // ฟังก์ชันดึงเมนูของจริงจาก Backend
-    const fetchMenus = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.getMenuByShopId(id);
-        setMenus(response.data);
+        const shopRes = await api.getShopById(id);
+        const menuRes = await api.getMenuByShopId(id);
+        setShop(Array.isArray(shopRes.data) ? shopRes.data[0] : shopRes.data); 
+        setMenus(menuRes.data);
       } catch (error) {
-        console.error("Error fetching menus:", error);
+        console.error("Error:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchMenus();
+    fetchData();
   }, [id]);
 
-  if (loading) return <div className="p-10 text-center">กำลังโหลดเมนู... ⏳</div>;
+  const translateCategory = (cat) => {
+    if (!cat) return 'ทั่วไป';
+    const map = {
+      'Main Course': 'อาหารจานหลัก', 'Main Dish': 'อาหารจานหลัก',
+      'Appetizer': 'ของทานเล่น', 'Side Dish': 'เครื่องเคียง',
+      'Dessert': 'ของหวาน', 'Drinks': 'เครื่องดื่ม',
+      'Soup': 'ซุป', 'Salad': 'สลัด', 'Noodles': 'ก๋วยเตี๋ยว'
+    };
+    return map[cat] || cat; 
+  };
+
+  if (loading) return (
+    <div className="flex justify-center items-center h-screen text-orange-500 font-bold">
+        กำลังโหลดข้อมูลอร่อยๆ... 🍜
+    </div>
+  );
+  
+  if (!shop) return (
+    <div className="flex flex-col justify-center items-center h-screen text-gray-500">
+        <p className="text-xl">ไม่พบร้านค้านี้ 😢</p>
+        <button onClick={() => navigate('/')} className="mt-4 text-orange-600 hover:underline">กลับหน้าหลัก</button>
+    </div>
+  );
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">รายการอาหาร (ร้าน ID: {id})</h1>
+    <div className="min-h-screen bg-gray-50 pb-20 font-sans">
       
-      {menus.length === 0 ? (
-        <div className="text-center p-10 bg-gray-50 rounded-lg border border-gray-200">
-           <p className="text-gray-500">ร้านนี้ยังไม่มีเมนูอาหารครับ 🍜</p>
+      {/* Header */}
+      <div className="bg-white shadow-sm sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
+            <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition">
+                <ArrowLeft size={24} />
+            </button>
+            <h1 className="text-xl font-bold text-gray-800 truncate">{shop.name}</h1>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {menus.map(item => (
-             <div key={item.id} className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition">
-               <div>
-                 <h3 className="font-bold text-lg text-gray-800">{item.menu_name}</h3>
-                 <p className="text-gray-500 text-sm">{item.description}</p>
-                 <p className="text-orange-600 font-bold mt-1">{Number(item.price).toFixed(0)} ฿</p>
-               </div>
-               <button 
-                 onClick={() => addToCart({...item}, parseInt(id))} 
-                 className="bg-orange-100 text-orange-600 px-4 py-2 rounded-lg font-semibold hover:bg-orange-200 transition active:scale-95"
-               >
-                 ใส่ตะกร้า +
-               </button>
-             </div>
-          ))}
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        
+        {/* Info Banner */}
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 flex flex-col md:flex-row gap-6 items-center md:items-start border border-gray-100">
+            <div className="w-full md:w-64 h-40 rounded-xl overflow-hidden shadow-inner bg-gray-200 shrink-0 relative group">
+                <img 
+                    src={shop.image || `https://placehold.co/600x400/orange/white?text=${encodeURIComponent(shop.name)}`} 
+                    alt={shop.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                    onError={(e) => {
+                        e.target.onerror = null; 
+                        e.target.src = 'https://placehold.co/600x400/orange/white?text=No+Image';
+                    }}
+                />
+            </div>
+            <div className="flex-1 text-center md:text-left">
+                <h1 className="text-3xl font-extrabold text-gray-900 mb-2">{shop.name}</h1>
+                <p className="text-gray-500 mb-4 flex items-center justify-center md:justify-start gap-1">
+                    📍 {shop.address || 'ไม่ระบุที่อยู่'}
+                </p>
+                <div className="flex items-center justify-center md:justify-start gap-4 text-sm">
+                     <div className="flex items-center gap-1 bg-green-50 text-green-700 px-3 py-1 rounded-full font-bold border border-green-100">
+                        <Star size={16} fill="currentColor" /> 4.8
+                     </div>
+                     <span className="text-gray-300">|</span>
+                     <div className="text-gray-600 font-medium">เปิดให้บริการ 09:00 - 20:00</div>
+                </div>
+            </div>
         </div>
-      )}
+
+        {/* Menu List */}
+        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-l-4 border-orange-500 pl-3">
+            รายการอาหาร
+        </h2>
+
+        {menus.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-dashed border-gray-300">
+                <div className="text-6xl mb-4 opacity-50">🍽️</div>
+                <p className="text-gray-400 text-lg">ร้านนี้ยังไม่มีเมนูอาหาร</p>
+            </div>
+        ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {menus.map((menu) => (
+                    <div key={menu.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group h-full flex flex-col relative">
+                        
+                        {/* Image Section */}
+                        <div className="h-56 relative overflow-hidden bg-orange-50">
+                            <img 
+                                src={menu.image} 
+                                alt={menu.menu_name} 
+                                className={`w-full h-full object-cover transition duration-500 ${!menu.image ? 'hidden' : 'block'}`}
+                                onError={(e) => { 
+                                    e.target.style.display = 'none'; 
+                                    e.target.nextSibling.style.display = 'flex'; 
+                                }} 
+                            />
+                            
+                            {/* Fallback Image */}
+                            <div className={`w-full h-full flex flex-col items-center justify-center text-orange-400 font-bold bg-orange-50 absolute inset-0 ${menu.image ? 'hidden' : 'flex'}`}>
+                                <span className="text-5xl mb-3 filter drop-shadow-sm transform group-hover:scale-110 transition">🍲</span>
+                                <span className="text-lg text-orange-500/70">ไม่มีรูปภาพ</span>
+                            </div>
+
+                            <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-lg text-xs font-bold text-gray-700 shadow-sm border border-gray-100">
+                                {translateCategory(menu.category)}
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-5 flex flex-col flex-grow">
+                            <div className="mb-2">
+                                {/* ✅ เรียกใช้ฟังก์ชันแสดงชื่อ 2 ภาษา */}
+                                {getBilingualName(menu.menu_name)}
+                            </div>
+                            <p className="text-gray-500 text-sm mb-4 line-clamp-2 min-h-[1.5em]">
+                                {menu.description || '-'}
+                            </p>
+                            
+                            <div className="mt-auto flex items-center justify-between pt-4 border-t border-dashed border-gray-200">
+                                <div className="text-xl font-extrabold text-gray-900">
+                                    {menu.price} <span className="text-sm font-medium text-gray-400">฿</span>
+                                </div>
+                                <button 
+                                    onClick={() => {
+                                        addToCart({
+                                            id: menu.id,
+                                            name: menu.menu_name, // ส่งชื่อเดิมไปลงตะกร้า (หรือจะแก้เป็นชื่อไทยก็ได้)
+                                            price: menu.price,
+                                            shopId: shop.id,
+                                            image: menu.image
+                                        });
+                                    }}
+                                    className="bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm hover:shadow-orange-200 flex items-center gap-2 active:scale-95"
+                                >
+                                    <Plus size={18} strokeWidth={3} /> ใส่ตะกร้า
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )}
+      </div>
     </div>
   );
 };
