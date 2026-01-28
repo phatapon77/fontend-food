@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { api } from '../../../services/api';
+import { api } from '../../../services/api'; // ตรวจสอบ path ให้ถูกต้องตามโปรเจกต์คุณ
 import { ArrowLeft, Star, Plus } from 'lucide-react';
 import useCartStore from '../../../store/cartStore';
 
@@ -13,27 +13,45 @@ const ShopDetails = () => {
   
   const addToCart = useCartStore((state) => state.addToCart);
 
-  // ✅ ระบบแปลชื่อเมนู (เพิ่มรายการตรงนี้ได้เลย)
+  // ✅ ระบบแปลชื่อเมนู (Updated: แก้คีย์ให้ตรงกับ Database เป๊ะๆ)
   const menuTranslations = {
-    'Khao Soi Kai Special': 'ข้าวซอยไก่พิเศษ',
-    'Sai Ua (Nothern Sausage)': 'ไส้อั่วสมุนไพร',
-    'Nam Prik Ong Set': 'ชุดน้ำพริกอ่อง',
-    'Khao Soi Kai': 'ข้าวซอยไก่',
-    'Sai Oua': 'ไส้อั่ว',
-    'Nam Prik Ong': 'น้ำพริกอ่อง',
-    'Green Curry': 'แกงเขียวหวาน',
-    'Pad Thai': 'ผัดไทย',
-    'Tom Yum Kung': 'ต้มยำกุ้ง'
+    // ชื่อต้องตรงกับใน Database ทุกตัวอักษร
+    'Khao Soi Kai Special (Chicken Leg)': 'ข้าวซอยไก่พิเศษ (น่องโต)',
+    'Sai Ua (Northern Herbal Sausage)': 'ไส้อั่วสมุนไพร (สูตรคุณยาย)',
+    'Nam Prik Ong Set (Dip with Veg)': 'ชุดน้ำพริกอ่อง + ผักสด',
+    'Traditional Khao Soi Kai': 'ข้าวซอยไก่ดั้งเดิม',
+    'Hang Lay Curry (Pork Belly)': 'แกงฮังเลหมูสามชั้น',
+    'Khanom Jeen Nam Ngiao': 'ขนมจีนน้ำเงี้ยว',
+    'Sticky Rice': 'ข้าวเหนียว',
+    'Chrysanthemum Tea': 'น้ำเก๊กฮวยเย็น',
+    'Iced Tea': 'ชาเย็น',
+    
+    // หมวดหมู่
+    'Main Course': 'อาหารจานหลัก',
+    'Appetizer': 'ของทานเล่น',
+    'Curry': 'ประเภทแกง',
+    'Noodles': 'เมนูเส้น',
+    'Side Dish': 'เครื่องเคียง',
+    'Beverage': 'เครื่องดื่ม',
+    'Soup': 'ซุป'
   };
 
-  // ✅ ฟังก์ชันจัดรูปแบบชื่อ (ไทย + อังกฤษ)
+  // ✅ ฟังก์ชันจัดรูปแบบชื่อ (ไทยตัวใหญ่ + อังกฤษตัวเล็ก)
   const getBilingualName = (englishName) => {
-    const thaiName = menuTranslations[englishName];
+    // ลองหาคำแปลจากชื่อเต็ม
+    let thaiName = menuTranslations[englishName];
+    
+    // ถ้าไม่เจอ ลองตัดวงเล็บออกแล้วหาใหม่ (เผื่อ Database มีวงเล็บแต่ Dictionary ไม่มี)
+    if (!thaiName && englishName.includes('(')) {
+        const cleanName = englishName.split('(')[0].trim();
+        thaiName = menuTranslations[cleanName];
+    }
+
     if (thaiName) {
       return (
         <div>
-          <span className="block text-lg font-bold text-gray-800">{thaiName}</span>
-          <span className="block text-sm font-medium text-gray-400">{englishName}</span>
+          <span className="block text-lg font-bold text-gray-800 leading-tight">{thaiName}</span>
+          <span className="block text-xs font-normal text-gray-400 mt-1">{englishName}</span>
         </div>
       );
     }
@@ -46,6 +64,8 @@ const ShopDetails = () => {
       try {
         const shopRes = await api.getShopById(id);
         const menuRes = await api.getMenuByShopId(id);
+        
+        // รองรับกรณี API ส่งมาเป็น Array หรือ Object
         setShop(Array.isArray(shopRes.data) ? shopRes.data[0] : shopRes.data); 
         setMenus(menuRes.data);
       } catch (error) {
@@ -59,17 +79,12 @@ const ShopDetails = () => {
 
   const translateCategory = (cat) => {
     if (!cat) return 'ทั่วไป';
-    const map = {
-      'Main Course': 'อาหารจานหลัก', 'Main Dish': 'อาหารจานหลัก',
-      'Appetizer': 'ของทานเล่น', 'Side Dish': 'เครื่องเคียง',
-      'Dessert': 'ของหวาน', 'Drinks': 'เครื่องดื่ม',
-      'Soup': 'ซุป', 'Salad': 'สลัด', 'Noodles': 'ก๋วยเตี๋ยว'
-    };
-    return map[cat] || cat; 
+    // ใช้ตัวแปรเดียวกับด้านบนจะได้แก้ที่เดียว
+    return menuTranslations[cat] || cat; 
   };
 
   if (loading) return (
-    <div className="flex justify-center items-center h-screen text-orange-500 font-bold">
+    <div className="flex justify-center items-center h-screen text-orange-500 font-bold animate-pulse">
         กำลังโหลดข้อมูลอร่อยๆ... 🍜
     </div>
   );
@@ -115,11 +130,11 @@ const ShopDetails = () => {
                     📍 {shop.address || 'ไม่ระบุที่อยู่'}
                 </p>
                 <div className="flex items-center justify-center md:justify-start gap-4 text-sm">
-                     <div className="flex items-center gap-1 bg-green-50 text-green-700 px-3 py-1 rounded-full font-bold border border-green-100">
-                        <Star size={16} fill="currentColor" /> 4.8
-                     </div>
-                     <span className="text-gray-300">|</span>
-                     <div className="text-gray-600 font-medium">เปิดให้บริการ 09:00 - 20:00</div>
+                      <div className="flex items-center gap-1 bg-green-50 text-green-700 px-3 py-1 rounded-full font-bold border border-green-100">
+                         <Star size={16} fill="currentColor" /> 4.8
+                      </div>
+                      <span className="text-gray-300">|</span>
+                      <div className="text-gray-600 font-medium">เปิดให้บริการ 09:00 - 20:00</div>
                 </div>
             </div>
         </div>
@@ -143,7 +158,7 @@ const ShopDetails = () => {
                         <div className="h-56 relative overflow-hidden bg-orange-50">
                             <img 
                                 src={menu.image} 
-                                alt={menu.menu_name} 
+                                alt={menu.menu_name || menu.name} 
                                 className={`w-full h-full object-cover transition duration-500 ${!menu.image ? 'hidden' : 'block'}`}
                                 onError={(e) => { 
                                     e.target.style.display = 'none'; 
@@ -165,8 +180,8 @@ const ShopDetails = () => {
                         {/* Content */}
                         <div className="p-5 flex flex-col flex-grow">
                             <div className="mb-2">
-                                {/* ✅ เรียกใช้ฟังก์ชันแสดงชื่อ 2 ภาษา */}
-                                {getBilingualName(menu.menu_name)}
+                                {/* ✅ เรียกใช้ฟังก์ชันแสดงชื่อ 2 ภาษา (รองรับทั้ง menu_name และ name) */}
+                                {getBilingualName(menu.menu_name || menu.name)}
                             </div>
                             <p className="text-gray-500 text-sm mb-4 line-clamp-2 min-h-[1.5em]">
                                 {menu.description || '-'}
@@ -180,7 +195,7 @@ const ShopDetails = () => {
                                     onClick={() => {
                                         addToCart({
                                             id: menu.id,
-                                            name: menu.menu_name, // ส่งชื่อเดิมไปลงตะกร้า (หรือจะแก้เป็นชื่อไทยก็ได้)
+                                            name: menu.menu_name || menu.name, // ใช้ชื่อที่มีอยู่
                                             price: menu.price,
                                             shopId: shop.id,
                                             image: menu.image

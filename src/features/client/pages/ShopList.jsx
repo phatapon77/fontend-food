@@ -22,7 +22,6 @@ const ShopList = () => {
     fetchShops();
   }, []);
 
-  // ฟังก์ชันกรองร้านค้า
   const filteredShops = shops.filter(shop => 
     shop.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -35,7 +34,7 @@ const ShopList = () => {
          }}
     >
       
-      {/* --- 🎨 Decoration: Floating Food Icons (พื้นหลังลายอาหาร) --- */}
+      {/* --- 🎨 Decoration: Floating Food Icons --- */}
       <div className="absolute top-20 left-10 text-9xl opacity-5 rotate-12 select-none pointer-events-none">🍕</div>
       <div className="absolute top-40 right-10 text-9xl opacity-5 -rotate-12 select-none pointer-events-none">🍔</div>
       <div className="absolute bottom-20 left-20 text-8xl opacity-5 rotate-45 select-none pointer-events-none">🍜</div>
@@ -74,7 +73,7 @@ const ShopList = () => {
             </div>
         </div>
 
-        {/* --- 2. Shop Grid Header (ขยับขึ้นมาแทนที่ Slider) --- */}
+        {/* --- 2. Shop Grid Header --- */}
         <div className="max-w-7xl mx-auto px-6 -mt-8 mb-6 flex items-center justify-between relative z-20">
             <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-white">
                 <span className="bg-orange-100 text-orange-600 p-1.5 rounded-lg"><Utensils size={20}/></span>
@@ -140,19 +139,20 @@ const ShopList = () => {
                                         </>
                                     )}
 
-                                    {/* Overlay Closed/Holiday */}
+                                    {/* 🔥 Updated Overlay: "ร้านปิด" ใหญ่เบิ้ม! */}
                                     {isClosed && (
                                         <div className="absolute inset-0 bg-gray-900/80 z-20 flex items-center justify-center backdrop-blur-[2px]">
-                                            <div className="bg-red-600 text-white px-6 py-2 rounded-xl font-black text-2xl shadow-xl transform -rotate-6 border-4 border-white/20">
-                                                CLOSED
+                                            {/* เปลี่ยนขนาด text-2xl เป็น text-5xl และเพิ่ม padding */}
+                                            <div className="text-white px-8 py-3 rounded-2xl font-black text-5xl shadow-2xl transform -rotate-6 border-4 border-white/30 tracking-widest">
+                                                ร้านปิด
                                             </div>
                                         </div>
                                     )}
                                     {isHoliday && (
                                         <div className="absolute inset-0 bg-gray-900/80 z-20 flex items-center justify-center backdrop-blur-[2px]">
                                              <div className="text-center text-white transform rotate-3">
-                                                <div className="text-5xl mb-2">✈️</div>
-                                                <span className="font-bold text-xl bg-orange-500 px-4 py-1 rounded-full border-2 border-white/30">ร้านหยุด</span>
+                                                <div className="text-6xl mb-2">✈️</div>
+                                                <span className="font-bold text-3xl bg-orange-500 px-6 py-2 rounded-full border-2 border-white/30 shadow-lg">ร้านหยุด</span>
                                              </div>
                                         </div>
                                     )}
